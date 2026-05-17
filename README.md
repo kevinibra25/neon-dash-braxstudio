@@ -1,8 +1,8 @@
 # ⚡ NEON DASH
-
 ![Neon Dash Banner](https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=1200)
-
 > **"Neural Interface v2.0.4 — Enter the Grid."**
+
+🔗 **[▶ PLAY NOW — Live Demo](https://neon-dash-by-braxstudio-203892229419.asia-east1.run.app)**
 
 **Neon Dash** is a high-speed, cyberpunk-themed endless runner built for the modern operative. Developed by **BraxStudio**, it combines minimalist neon aesthetics with precision arcade gameplay and a global competitive layer.
 
@@ -39,8 +39,8 @@
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/neon-dash.git
-   cd neon-dash
+   git clone https://github.com/kevinibra25/neon-dash-braxstudio.git
+   cd neon-dash-braxstudio
    ```
 
 2. **Install dependencies**
@@ -68,7 +68,7 @@
 
 This project is a product of **BraxStudio**.
 
-- **© 2024 BraxStudio**. All Rights Reserved.
+- **© 2025 BraxStudio**. All Rights Reserved.
 - Unauthorized duplication of the "Neon Dash" assets or "BraxStudio Neural Interface" design is strictly prohibited.
 
 ---
