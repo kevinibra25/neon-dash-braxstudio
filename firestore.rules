@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidLeaderboardEntry(data) {
+      return data.playerName is string 
+          && data.playerName.size() >= 1 && data.playerName.size() <= 50
+          && data.score is number && data.score >= 0
+          && data.userId is string
+          && data.createdAt == request.time
+          && data.keys().hasAll(['playerName', 'score', 'userId', 'createdAt'])
+          && data.keys().size() == 4;
+    }
+
+    // Leaderboard rules
+    match /leaderboard/{entryId} {
+      // Anyone can see the leaderboard
+      allow list: if true;
+      allow get: if true;
+
+      // Allow creation without auth for demo purposes, ensure ID matches userId
+      allow create: if isValidLeaderboardEntry(request.resource.data)
+                    && entryId == request.resource.data.userId;
+      
+      // Allow updates if the new score is higher and ID matches
+      allow update: if isValidLeaderboardEntry(request.resource.data)
+                    && entryId == request.resource.data.userId
+                    && request.resource.data.score > resource.data.score;
+
+      // Entries are immutable for now
+      allow delete: if false;
+    }
+  }
+}

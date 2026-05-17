@@ -1,0 +1,8 @@
+{
+  "name": "Neon Dash by BraxStudio",
+  "description": "A high-speed cyberpunk endless runner with neon aesthetics and polished arcade gameplay.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
