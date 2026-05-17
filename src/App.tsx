@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Play, RotateCcw, HelpCircle, Trophy, User, ChevronRight, Loader2 } from 'lucide-react';
 import { NeonGame } from './components/NeonGame';
 import { getLeaderboard, saveScore, LeaderboardEntry, cleanupDuplicates, isNameTaken } from './services/firebase';
+import { soundService } from './services/soundService';
 
 type GameState = 'START' | 'NAME_ENTRY' | 'PLAYING' | 'GAMEOVER';
 
@@ -21,6 +22,14 @@ export default function App() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [nameError, setNameError] = useState('');
   const [isCheckingName, setIsCheckingName] = useState(false);
+  
+  const characterColors = [
+    { id: 'cyan', name: 'NEON CYAN', primary: '#00f3ff', edge: '#0090ff' },
+    { id: 'red', name: 'CRIMSON OVERDRIVE', primary: '#ff3131', edge: '#8b0000' },
+    { id: 'purple', name: 'VIOLET PULSE', primary: '#ff00ff', edge: '#9400d3' },
+    { id: 'gold', name: 'GOLDEN GRID', primary: '#ffd700', edge: '#b8860b' },
+  ];
+  const [selectedColor, setSelectedColor] = useState(characterColors[0]);
 
   useEffect(() => {
     const savedScore = localStorage.getItem('neon-dash-highscore');
@@ -29,8 +38,19 @@ export default function App() {
     const savedName = localStorage.getItem('neon-dash-player-name');
     if (savedName) setPlayerName(savedName);
 
+    const savedColorId = localStorage.getItem('neon-dash-char-color');
+    if (savedColorId) {
+      const color = characterColors.find(c => c.id === savedColorId);
+      if (color) setSelectedColor(color);
+    }
+
     fetchLeaderboard();
   }, []);
+
+  const handleColorSelect = (color: typeof characterColors[0]) => {
+    setSelectedColor(color);
+    localStorage.setItem('neon-dash-char-color', color.id);
+  };
 
   const fetchLeaderboard = async () => {
     setIsLoadingLeaderboard(true);
@@ -40,6 +60,8 @@ export default function App() {
   };
 
   const handleGameOver = async (finalScore: number) => {
+    soundService.playDeath();
+    soundService.stopMusic();
     setScore(finalScore);
     if (finalScore > highScore) {
       setHighScore(finalScore);
@@ -70,6 +92,8 @@ export default function App() {
   const proceedToGame = async () => {
     if (!playerName.trim()) return;
     
+    await soundService.resume();
+    soundService.startMusic();
     setIsCheckingName(true);
     setNameError('');
     
@@ -86,8 +110,10 @@ export default function App() {
     setScore(0);
   };
 
-  const startGameSequence = () => {
+  const startGameSequence = async () => {
+    await soundService.resume();
     if (playerName) {
+      soundService.startMusic();
       setGameState('PLAYING');
       setScore(0);
     } else {
@@ -96,14 +122,14 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen w-screen bg-dark-bg flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="h-screen w-screen bg-dark-bg flex flex-col items-center justify-center relative overflow-hidden touch-none">
       {/* Branding Header */}
-      <div className="absolute top-6 w-full px-8 flex justify-between items-center z-20 pointer-events-none">
+      <div className="absolute top-0 left-0 w-full px-6 py-4 z-20 pointer-events-none pt-[calc(0.75rem+env(safe-area-inset-top))] flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-neon-blue rounded flex items-center justify-center font-black italic text-dark-bg">B</div>
-          <span className="font-mono text-neon-blue text-sm uppercase font-bold tracking-[0.2em]">BraxStudio</span>
+          <div className="w-6 h-6 md:w-8 md:h-8 bg-neon-blue rounded flex items-center justify-center font-black italic text-dark-bg text-xs md:text-base">B</div>
+          <span className="font-mono text-neon-blue text-[10px] md:text-sm uppercase font-bold tracking-[0.2em]">BraxStudio</span>
         </div>
-        <div className="text-[10px] font-mono text-white/30 uppercase tracking-[0.3em]">Neural Interface v2.0.4</div>
+        <div className="text-[8px] md:text-[10px] font-mono text-white/20 uppercase tracking-[0.3em] hidden sm:block">v2.0.4</div>
       </div>
 
       {/* Background Decorative Grid */}
@@ -145,11 +171,70 @@ export default function App() {
                 {playerName && (
                   <button 
                     onClick={() => setGameState('NAME_ENTRY')}
-                    className="text-xs font-mono text-white/40 hover:text-white/80 uppercase tracking-widest transition-colors"
+                    className="text-xs font-mono text-white/40 hover:text-white/80 uppercase tracking-widest transition-colors mb-2"
                   >
                     Change Identity
                   </button>
                 )}
+
+                {/* Character Customization */}
+                <div className="mt-8 flex flex-col items-center md:items-start group/custom">
+                  <div className="text-[10px] font-mono text-white/30 uppercase tracking-[0.2em] mb-4">Customization.Unit()</div>
+                  
+                  <div className="flex flex-col md:flex-row gap-6 items-center">
+                    {/* Character Preview */}
+                    <div className="relative w-16 h-16 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center overflow-hidden">
+                      <div className="absolute inset-0 opacity-20" 
+                           style={{ 
+                             backgroundImage: 'linear-gradient(45deg, #fff 1px, transparent 1px)',
+                             backgroundSize: '10px 10px' 
+                           }} 
+                      />
+                      <motion.div 
+                        initial={false}
+                        animate={{ 
+                          backgroundColor: selectedColor.primary,
+                          boxShadow: `0 0 20px ${selectedColor.primary}`
+                        }}
+                        className="w-8 h-10 rounded-md relative flex items-center justify-center"
+                      >
+                        <div className="w-6 h-1.5 bg-white rounded-full absolute top-2" />
+                        <div className="w-5 h-[1px] bg-white/30 absolute bottom-2" />
+                      </motion.div>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <div className="flex gap-2">
+                        {characterColors.map((color) => (
+                          <button
+                            key={color.id}
+                            onClick={() => handleColorSelect(color)}
+                            className={`w-10 h-10 rounded border-2 transition-all duration-300 relative group/btn ${
+                              selectedColor.id === color.id 
+                                ? 'border-white scale-110' 
+                                : 'border-transparent opacity-50 hover:opacity-100'
+                            }`}
+                          >
+                            <div className="absolute inset-1 rounded-[2px]" style={{ backgroundColor: color.primary }} />
+                            {selectedColor.id === color.id && (
+                              <div className="absolute -inset-2 border border-white/20 rounded-lg animate-pulse" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                      
+                      <div className="flex flex-col">
+                        <span className="text-xs font-mono font-black italic tracking-widest uppercase" style={{ color: selectedColor.primary }}>
+                          {selectedColor.name}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[8px] font-mono text-white/40 uppercase">Module Identity: [AUTH_OK]</span>
+                          <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -248,7 +333,11 @@ export default function App() {
             exit={{ opacity: 0 }}
             className="w-full h-full"
           >
-            <NeonGame onGameOver={handleGameOver} isPaused={false} />
+            <NeonGame 
+              onGameOver={handleGameOver} 
+              isPaused={false} 
+              characterColor={selectedColor}
+            />
           </motion.div>
         )}
 
@@ -282,7 +371,11 @@ export default function App() {
 
             <div className="flex flex-col gap-4">
               <button
-                onClick={() => setGameState('PLAYING')}
+                onClick={async () => {
+                  await soundService.resume();
+                  soundService.startMusic();
+                  setGameState('PLAYING');
+                }}
                 className="w-full py-4 bg-neon-pink text-dark-bg font-bold uppercase tracking-widest hover:brightness-125 transition-all"
               >
                 <div className="flex items-center justify-center gap-2">
@@ -305,8 +398,8 @@ export default function App() {
       <div className="absolute bottom-0 right-0 w-32 h-32 border-r-2 border-b-2 border-neon-blue/20 pointer-events-none" />
 
       {/* Copyright Footer */}
-      <div className="absolute bottom-4 w-full text-center z-20 pointer-events-none">
-        <p className="text-[9px] font-mono text-white/10 uppercase tracking-[0.4em]">
+      <div className="absolute bottom-0 w-full text-center z-20 pointer-events-none pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <p className="text-[8px] md:text-[9px] font-mono text-white/10 uppercase tracking-[0.4em]">
           Copyright © {new Date().getFullYear()} BraxStudio. All Rights Reserved.
         </p>
       </div>

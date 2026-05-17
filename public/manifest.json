@@ -1,0 +1,22 @@
+{
+  "name": "Neon Dash",
+  "short_name": "NeonDash",
+  "description": "High-speed cyberpunk endless runner by BraxStudio",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=192&h=192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=512&h=512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
